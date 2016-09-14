@@ -21,6 +21,7 @@ function onEmail(address, pathname, cb) {
 
     var parser = new MailParser({ streamAttachments: true })
     parser.on('end', function parsedSMTP (email) {
+      console.log('Email received: %s', email.text);
       var opts = {
         to: forwardAddr,
         from: email.from,

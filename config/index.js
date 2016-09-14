@@ -4,14 +4,12 @@ module.exports = {
     password: process.env.HEROKU_PASSWORD
   },
   mailer: {
-    mailer: {
-      host: process.env.MAIL_API_HOST,
-      port: process.env.MAIL_API_PORT,
-      secure: true,
-      auth: {
-        user: process.env.MAIL_API_USERNAME,
-        pass: process.env.MAIL_API_PASSWORD
-      }
+    host: process.env.MAIL_API_HOST,
+    port: process.env.MAIL_API_PORT,
+    secure: true,
+    auth: {
+      user: process.env.MAIL_API_USERNAME,
+      pass: process.env.MAIL_API_PASSWORD
     }
   }
 }

@@ -2,7 +2,7 @@ var Receiver = require('./lib/receiver')
 var Heroku = require('./lib/heroku')
 var Mailer = require('./lib/sender')
 var config = require('./config')
-var MailParser = require('mailparser')
+var MailParser = require('mailparser').MailParser
 var fs = require('fs')
 
 new Receiver({ onEmail: onEmail, onError: onError }, onError)

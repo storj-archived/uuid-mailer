@@ -32,9 +32,9 @@ function onEmail(address, pathname, cb) {
       console.log('Sending Email')
       console.log(JSON.stringify(opts, null, ' '))
 
-      return mailer._transporter.sendMail(opts, function mailSent() {
-        if(e) console.error(e)
-        console.log('Email sent')
+      return mailer._transporter.sendMail(opts, function mailSent(e, info) {
+        if(e) return console.error(e)
+        console.log('Email sent: %s', info)
         return cb(e)
       })
     })

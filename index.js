@@ -30,7 +30,6 @@ function onEmail(address, pathname, cb) {
       };
 
       console.log('Sending Email');
-      console.log(JSON.stringify(opts, null, ' '));
 
       return mailer._transporter.sendMail(opts, function mailSent(e, info) {
         if(e) {

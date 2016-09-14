@@ -12,10 +12,12 @@ var mailer = new Mailer(config.mailer)
 function onEmail(address, pathname, cb) {
   console.log(address.address)
   heroku.getEmail(address.local, function haveHerokuEmail(e, forwardAddr) {
+    /*
     if(e) {
       console.error(e)
       return cb(e)
     }
+    */
 
     console.log(forwardAddr)
 

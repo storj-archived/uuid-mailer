@@ -17,9 +17,9 @@ function onEmail(address, pathname, cb) {
       return cb(e)
     }
 
-    console.log(forwardAddr)
+    console.log('Forwarding email to address %s', forwardAddr);
 
-    var parser = new MailParser({ streamAttachments: true })
+    var parser = new MailParser({ streamAttachments: true });
     parser.on('end', function parsedSMTP (email) {
       var opts = {
         to: forwardAddr,
@@ -27,19 +27,22 @@ function onEmail(address, pathname, cb) {
         subject: email.subject,
         text: email.text,
         html: email.html
-      }
+      };
 
-      console.log('Sending Email')
-      console.log(JSON.stringify(opts, null, ' '))
+      console.log('Sending Email');
+      console.log(JSON.stringify(opts, null, ' '));
 
       return mailer._transporter.sendMail(opts, function mailSent(e, info) {
-        if(e) return console.error(e)
-        console.log('Email sent: %s', info)
-        return cb(e)
-      })
-    })
-    fs.createReadStream(pathname).pipe(parser)
-  })
+        if(e) {
+          return console.error('Error sending email: %s', e)
+        }
+
+        console.log('Email sent: %s', info);
+        return cb(e);
+      });
+    });
+    fs.createReadStream(pathname).pipe(parser);
+  });
 }
 
 function onError(e) {

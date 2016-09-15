@@ -17,7 +17,7 @@ function onEmail(address, pathname, cb) {
       return cb(e)
     }
 
-    console.log('Successfully mapped address %s to $s', address.address, forwarddAddr);
+    console.log('Successfully mapped address %s to $s', address.address, forwardAddr);
 
     var parser = new MailParser({ streamAttachments: true });
     parser.on('end', function parsedSMTP (email) {

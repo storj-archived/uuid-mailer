@@ -10,14 +10,14 @@ var heroku = new Heroku(config.heroku.id, config.heroku.password)
 var mailer = new Mailer(config.mailer)
 
 function onEmail(address, pathname, cb) {
-  console.log(address.address)
+  console.log('Received email for %s', address.address)
   heroku.getEmail(address.local, function haveHerokuEmail(e, forwardAddr) {
     if(e) {
       console.error(e)
       return cb(e)
     }
 
-    console.log('Forwarding email to address %s', forwardAddr);
+    console.log('Successfully mapped address %s to $s', address.address, forwarddAddr);
 
     var parser = new MailParser({ streamAttachments: true });
     parser.on('end', function parsedSMTP (email) {
@@ -29,14 +29,14 @@ function onEmail(address, pathname, cb) {
         html: email.html
       };
 
-      console.log('Sending Email');
+      console.log('Forwarding email to address %s', forwardAddr);
 
       return mailer._transporter.sendMail(opts, function mailSent(e, info) {
         if(e) {
-          return console.error('Error sending email: %s', e)
+          return console.error('Error sending email for %s: %s', forwardAddr, e)
         }
 
-        console.log('Email sent: %s', info);
+        console.log('Email for %s sent: ', forwardAddr, info);
         return cb(e);
       });
     });

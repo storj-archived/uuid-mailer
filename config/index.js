@@ -1,12 +1,20 @@
 module.exports = {
   heroku: {
     id: process.env.HEROKU_ID,
-    password: process.env.HEROKU_PASSWORD
+    password: process.env.HEROKU_PASSWORD,
+    url: process.env.HEROKU_URL || 'https://api.heroku.com'
   },
   mailer: {
     host: process.env.MAIL_API_HOST,
     port: process.env.MAIL_API_PORT,
-    secure: true,
+    secureConnection: (typeof process.env.MAIL_SECURE === 'string')
+      ? process.env.MAIL_SECURE.toLowerCase() === 'false'
+      : true,
+    tls: {
+        rejectUnauthorized:  (typeof process.env.MAIL_SECURE === 'string')
+      ? process.env.MAIL_SECURE.toLowerCase() === 'true'
+      : true
+    },
     auth: {
       user: process.env.MAIL_API_USERNAME,
       pass: process.env.MAIL_API_PASSWORD

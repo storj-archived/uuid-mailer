@@ -60,3 +60,18 @@ function onEmail(address, pathname, cb) {
 function onError(e) {
   if(e) return console.error(e);
 }
+
+// Bootstrap is the entrypoint logic for this application. When started via
+// the command line, this function is called to startup the app. When required
+// in by the tests, this is the function exported.
+function bootstrap () {
+}
+
+// Make this easier to test. If we are required in by another module, we will
+// export a function that lets that module control this application.
+/* istanbul ignore else */
+if(module.parent) {
+
+} else {
+  // We were started from the command line, so startup like normal
+}

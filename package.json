@@ -21,7 +21,7 @@
     "tape": "^4.6.0"
   },
   "scripts": {
-    "test": "nyc tape test/**/*.js"
+    "test": "nyc --reporter text --reporter html tape test/**/*.js"
   },
   "author": "William Blankenship <william.jblankenship@gmail.com>",
   "license": "MIT"

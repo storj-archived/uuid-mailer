@@ -6,15 +6,9 @@ var MailParser = require('mailparser').MailParser;
 var fs = require('fs');
 var autoaccept = require('./lib/autoaccept');
 
-new Receiver({ onEmail: onEmail, onError: onError }, onError);
-var heroku = new Heroku(config.heroku.id,
-  config.heroku.password,
-  config.heroku.url);
-var mailer = new Mailer(config.mailer);
-
 function onEmail(address, pathname, cb) {
   console.log('Received email for %s', address.address);
-  heroku.getEmail(address.local, function haveHerokuEmail(e, forwardAddr) {
+  this.heroku.getEmail(address.local, function haveHerokuEmail(e, forwardAddr) {
     if(e) {
       console.error(e);
       return cb(e);
@@ -32,7 +26,12 @@ function onEmail(address, pathname, cb) {
         html: email.html
       };
 
+      if(!opts.from || !opts.subject || !opts.text || !opts.html) {
+        return cb(new Error('Invalid SMTP message'))
+      }
+
       /*
+       * TODO: Detect if email is for registration, if not forward it on.
       console.log('Forwarding email to address %s', forwardAddr);
 
       return mailer._transporter.sendMail(opts, function mailSent(e, info) {
@@ -57,21 +56,44 @@ function onEmail(address, pathname, cb) {
   });
 }
 
-function onError(e) {
+function onError (e) {
   if(e) return console.error(e);
 }
 
 // Bootstrap is the entrypoint logic for this application. When started via
 // the command line, this function is called to startup the app. When required
 // in by the tests, this is the function exported.
-function bootstrap () {
+function bootstrap (cb) {
+  var result = {}
+  new Receiver(
+    {
+      port: config.receiver.port,
+      host: config.receiver.host,
+      tmpdir: config.receiver.tmpdir,
+      onEmail: onEmail.bind(result),
+      onError: onError.bind(result)
+    },
+    function SMTPUp (e, smtp) {
+      // TODO: rollback heroku and mailer if needed
+      result.receiver = smtp;
+      return cb(e, result);
+  });
+  result.heroku = new Heroku(config.heroku.id,
+    config.heroku.password,
+    config.heroku.url);
+  result.mailer = new Mailer(config.mailer);
 }
 
 // Make this easier to test. If we are required in by another module, we will
 // export a function that lets that module control this application.
 /* istanbul ignore else */
 if(module.parent) {
-
+  module.exports = bootstrap
 } else {
   // We were started from the command line, so startup like normal
+  bootstrap(function started(e) {
+    // If there was an error, let the process die in a blaze of glory
+    if(e) { throw e; }
+    console.log('account mapper started succesfully');
+  });
 }

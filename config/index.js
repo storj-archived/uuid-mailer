@@ -19,6 +19,11 @@ module.exports = {
       user: process.env.MAIL_API_USERNAME,
       pass: process.env.MAIL_API_PASSWORD
     }
+  },
+  receiver: {
+    port: process.env.RECEIVER_PORT || 25,
+    host: process.env.RECEIVER_HOST || '0.0.0.0',
+    tmpdir: process.env.RECEIVER_TMPDIR || 'storj-mailer'
   }
 }
 

@@ -5,16 +5,17 @@ var config = require('./config');
 var MailParser = require('mailparser').MailParser;
 var fs = require('fs');
 var autoaccept = require('./lib/autoaccept');
+var log = require('bole')('account-mapper')
 
 function onEmail(address, pathname, cb) {
-  console.log('Received email for %s', address.address);
+  log.info('Received email for %s', address.address);
   this.heroku.getEmail(address.local, function haveHerokuEmail(e, forwardAddr) {
     if(e) {
-      console.error(e);
+      log.error(e);
       return cb(e);
     }
 
-    console.log('Successfully mapped address %s to %s', address.address, forwardAddr);
+    log.info('Successfully mapped address %s to %s', address.address, forwardAddr);
 
     var parser = new MailParser({ streamAttachments: true });
     parser.on('end', function parsedSMTP (email) {
@@ -32,22 +33,22 @@ function onEmail(address, pathname, cb) {
 
       /*
        * TODO: Detect if email is for registration, if not forward it on.
-      console.log('Forwarding email to address %s', forwardAddr);
+      log.info('Forwarding email to address %s', forwardAddr);
 
       return mailer._transporter.sendMail(opts, function mailSent(e, info) {
         if(e) {
-          return console.error('Error sending email for %s: %s', forwardAddr, e)
+          return log.error('Error sending email for %s: %s', forwardAddr, e)
         }
 
-        console.log('Email for %s sent with messageId %s', forwardAddr, info.messageId);
+        log.info('Email for %s sent with messageId %s', forwardAddr, info.messageId);
         return cb(e);
       });
       */
 
-      console.log(`Auto accepting registration for ${forwardAddr}`);
+      log.info(`Auto accepting registration for ${forwardAddr}`);
       autoaccept(forwardAddr, email.from, email.html, function accepted(e) {
         if(e) {
-          console.error(`Failed to auto accept: ${e.message}`);
+          log.error(`Failed to auto accept: ${e.message}`);
         }
         return cb(e);
       });
@@ -57,7 +58,7 @@ function onEmail(address, pathname, cb) {
 }
 
 function onError (e) {
-  if(e) return console.error(e);
+  if(e) return log.error(e);
 }
 
 // Bootstrap is the entrypoint logic for this application. When started via
@@ -94,6 +95,6 @@ if(module.parent) {
   bootstrap(function started(e) {
     // If there was an error, let the process die in a blaze of glory
     if(e) { throw e; }
-    console.log('account mapper started succesfully');
+    log.info('account mapper started succesfully');
   });
 }

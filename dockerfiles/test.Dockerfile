@@ -13,5 +13,6 @@ RUN npm install
 RUN npm install -g local-web-server
 ADD ./ ./
 
+ENV LOG_LEVEL none
 
 CMD ["dumb-init", "bash", "-c", "npm test && ws -d coverage"]

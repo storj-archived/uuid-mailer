@@ -25,8 +25,16 @@ module.exports = {
     port: process.env.RECEIVER_PORT || 25,
     host: process.env.RECEIVER_HOST || '0.0.0.0',
     tmpdir: process.env.RECEIVER_TMPDIR || 'storj-mailer'
+  },
+  log: {
+    level: process.env.LOG_LEVEL || 'info'
   }
 }
+
+require('bole').output({
+  level: module.exports.log.level,
+  stream: process.stdout
+})
 
 // Lock this config object down so we can't accidentally change it during
 // runtime

@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 module.exports = {
   heroku: {
     id: process.env.HEROKU_ID,

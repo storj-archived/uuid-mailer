@@ -83,7 +83,7 @@ function onEmail(address, pathname, cb) {
       // Once we have loaded the email from disk, and have confirmed that this
       // message was a registration email, we can auto accept registration on
       // behalf of the user.
-      autoaccept(forwardAddr, email.from, email.html, function accepted(e) {
+      autoaccept(email.html, function accepted(e) {
         // The callback simply lets us log a message before calling the cb
         if(e) {
           log.error(`Failed to auto accept: ${e.message}`);

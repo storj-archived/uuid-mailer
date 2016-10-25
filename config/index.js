@@ -1,3 +1,4 @@
+// We don't need to test our configuration file
 /* istanbul ignore next */
 module.exports = {
   heroku: {
@@ -31,6 +32,7 @@ module.exports = {
   }
 }
 
+// Configure logging
 require('bole').output({
   level: module.exports.log.level,
   stream: process.stdout

@@ -19,8 +19,7 @@ test('Autoaccept parses link', function (t) {
     t.equal('foobar!', url)
     setImmediate(cb)
   }
-  autoaccept('foo', 'bar',
-    '<html><body><a href="foobar!"></a></body></html>', function (e) {
+  autoaccept('<html><body><a href="foobar!"></a></body></html>', function (e) {
       t.error(e, 'error free')
       t.end()
     })
@@ -28,8 +27,7 @@ test('Autoaccept parses link', function (t) {
 
 test('Autoaccept errors when no link provided', function (t) {
   t.plan(1)
-  autoaccept('foo', 'bar',
-    '<html><body></body></html>', function (e) {
+  autoaccept('<html><body></body></html>', function (e) {
       t.ok(e, 'Error when no link provided')
       t.end()
     })

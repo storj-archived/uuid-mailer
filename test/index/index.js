@@ -134,7 +134,7 @@ test('Receiver handles invalid SMTP messages', function (t) {
 })
 
 test('Process auto accepts emails', function (t) {
-  t.plan(10);
+  t.plan(8);
   var onEmail = null
   var mock_receiver = function (opts, cb) {
     t.pass('Receiver mock called');
@@ -144,10 +144,8 @@ test('Process auto accepts emails', function (t) {
   };
   require('../../lib/receiver');
   require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_accepter = function (to, from, html, cb) {
+  var mock_accepter = function (html, cb) {
     t.pass('Accepter was called');
-    t.ok(to, 'email address resolved');
-    t.ok(from, 'received valid sender');
     t.ok(html, 'was provided message body');
     setImmediate(cb);
   };
@@ -179,7 +177,7 @@ test('Process auto accepts emails', function (t) {
 })
 
 test('Index handles autoaccept errors ', function (t) {
-  t.plan(10);
+  t.plan(8);
   var onEmail = null
   var mock_receiver = function (opts, cb) {
     t.pass('Receiver mock called');
@@ -189,10 +187,8 @@ test('Index handles autoaccept errors ', function (t) {
   };
   require('../../lib/receiver');
   require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_accepter = function (to, from, html, cb) {
+  var mock_accepter = function (html, cb) {
     t.pass('Accepter was called');
-    t.ok(to, 'email address resolved');
-    t.ok(from, 'received valid sender');
     t.ok(html, 'was provided message body');
     setImmediate(cb, new Error('foobar!'));
   };

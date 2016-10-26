@@ -12,7 +12,13 @@ help:
 	echo "    docker-build - build fresh docker containers"
 
 test: docker-clean docker-build
-	docker run -a stdout -a stderr -p 8000:8000 --name account-mapper storj/account-mapper
+	mkdir -p coverage
+	docker run \
+		-a stdout \
+		-a stderr \
+		-v ${PWD}/coverage:/usr/src/app/coverage \
+		--name account-mapper \
+		storj/account-mapper
 
 docker-clean:
 	docker rm -f account-mapper || true

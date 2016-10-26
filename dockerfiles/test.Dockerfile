@@ -15,4 +15,4 @@ ADD ./ ./
 
 ENV LOG_LEVEL none
 
-CMD ["dumb-init", "bash", "-c", "npm test && ws -d coverage"]
+CMD ["dumb-init", "npm", "test"]

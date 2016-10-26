@@ -176,6 +176,116 @@ test('Process auto accepts emails', function (t) {
   })
 })
 
+test('Process forwards non-registration emails', function (t) {
+  t.plan(7);
+  var onEmail = null
+  var mock_receiver = function (opts, cb) {
+    t.pass('Receiver mock called');
+    t.ok(opts.onEmail, 'Was provided email handler');
+    onEmail = opts.onEmail
+    setImmediate(cb);
+  };
+  require('../../lib/receiver');
+  require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
+  var mock_accepter = function (html, cb) {
+    t.fail('Accepter was called instead of sender');
+    setImmediate(cb);
+  };
+  require('../../lib/autoaccept');
+  require.cache[require.resolve('../../lib/autoaccept')].exports =
+    mock_accepter;
+  var mock_sender = function (opts) {
+    return {
+      _transporter: {
+        sendMail: function (opts, cb) {
+          t.ok('Called sendmail!');
+          setImmediate(cb, null, { messageId: 'foobar!' });
+        }
+      }
+    }
+  };
+  require('../../lib/sender');
+  require.cache[require.resolve('../../lib/sender')].exports =
+    mock_sender;
+  var mock_heroku = function() {
+    t.pass('Heroku mock called')
+    return {
+      getEmail: function (addr, cb) {
+        t.pass('Heroku.getEmail mock called');
+        return setImmediate(cb, null, 'will@storj.io');
+      }
+    };
+  };
+  require('../../lib/heroku');
+  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+
+  delete require.cache[require.resolve('../../index.js')];
+  var index = require('../../index.js');
+
+  index(function (e) {
+    t.error(e, 'Mock worked')
+    onEmail({}, path.join(__dirname, 'other.txt'), function (e) {
+      t.error(e, 'does not error')
+      t.end();
+    })
+  })
+})
+
+test('Process handles error when forwarding', function (t) {
+  t.plan(7);
+  var onEmail = null
+  var mock_receiver = function (opts, cb) {
+    t.pass('Receiver mock called');
+    t.ok(opts.onEmail, 'Was provided email handler');
+    onEmail = opts.onEmail
+    setImmediate(cb);
+  };
+  require('../../lib/receiver');
+  require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
+  var mock_accepter = function (html, cb) {
+    t.fail('Accepter was called instead of sender');
+    setImmediate(cb);
+  };
+  require('../../lib/autoaccept');
+  require.cache[require.resolve('../../lib/autoaccept')].exports =
+    mock_accepter;
+  var mock_sender = function (opts) {
+    return {
+      _transporter: {
+        sendMail: function (opts, cb) {
+          t.ok('Called sendmail!');
+          setImmediate(cb, new Error('foobar'));
+        }
+      }
+    }
+  };
+  require('../../lib/sender');
+  require.cache[require.resolve('../../lib/sender')].exports =
+    mock_sender;
+  var mock_heroku = function() {
+    t.pass('Heroku mock called')
+    return {
+      getEmail: function (addr, cb) {
+        t.pass('Heroku.getEmail mock called');
+        return setImmediate(cb, null, 'will@storj.io');
+      }
+    };
+  };
+  require('../../lib/heroku');
+  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+
+  delete require.cache[require.resolve('../../index.js')];
+  var index = require('../../index.js');
+
+  index(function (e) {
+    t.error(e, 'Mock worked')
+    onEmail({}, path.join(__dirname, 'other.txt'), function (e) {
+      t.ok(e, 'returns error')
+      t.end();
+    })
+  })
+})
+
 test('Index handles autoaccept errors ', function (t) {
   t.plan(8);
   var onEmail = null

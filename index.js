@@ -23,13 +23,15 @@ var log = require('bole')('account-mapper')
 // onEmail is the event handler that is triggered when a new email is received
 // by the server.
 function onEmail(address, pathname, cb) {
+  // Cache the reference to this for use in nested functions
+  var self = this;
   log.info('Received email for %s', address.address);
   // Resolve the UUID for incomming email to a heroku account. This also
   // verifies that the incoming email belongs to a real heroku add-on, and
   // that this API isn't being abused to register bot accounts. If the UUID
   // does not exist on Heroku's end, we will return an error instead of
   // registering the account.
-  this.heroku.getEmail(address.local, function haveEmail (e, forwardAddr) {
+  self.heroku.getEmail(address.local, function haveEmail (e, forwardAddr) {
     // If we encounter an error, then we should assume the heroku address does
     // not exist, and we should return.
     if(e) {
@@ -55,10 +57,29 @@ function onEmail(address, pathname, cb) {
         return cb(new Error('Invalid SMTP message'))
       }
 
-      /*
-       * TODO: Detect if email is for registration, if not forward it on.
-      // Next, we coerce the incomming email message into a format mailer
-      // understands
+      // If the subject of the email is to confirm the email address, then we
+      // know it is a registration email. Otherwise we pass the message on
+      // through. This is coupling our application's logic to the bridge's
+      // email format, but we don't see a way around it. The worst case here is
+      // that a heroku user receives an email requiring that they confirm their
+      // account.
+      if(email.subject.indexOf('Confirm Your Email Address') !== -1) {
+        log.info(`Auto accepting registration for ${forwardAddr}`);
+        // Once we have loaded the email from disk, and have confirmed that this
+        // message was a registration email, we can auto accept registration on
+        // behalf of the user.
+        return autoaccept(email.html, function accepted(e) {
+          // The callback simply lets us log a message before calling the cb
+          if(e) {
+            log.error(`Failed to auto accept: ${e.message}`);
+          }
+          return cb(e);
+        });
+      }
+
+      // Since the message didn't have the subject we expect of registration
+      // emails, we will go ahead and forward it onto the user. We start by
+      // coercing the incomming email message into a format mailer understands.
       var opts = {
         to: forwardAddr,
         from: email.from,
@@ -69,25 +90,15 @@ function onEmail(address, pathname, cb) {
 
       log.info('Forwarding email to address %s', forwardAddr);
 
-      return mailer._transporter.sendMail(opts, function mailSent(e, info) {
+      // Use the transporter from the bridge's repository to forward the email
+      // along to the end user.
+      return self.mailer._transporter.sendMail(opts, function sent(e, info) {
         if(e) {
-          return log.error('Error sending email for %s: %s', forwardAddr, e)
-          }
+          log.error('Error sending email for %s: %s', forwardAddr, e);
+          return cb(e);
+        }
 
         log.info('Email for %s sent with messageId %s', forwardAddr, info.messageId);
-        return cb(e);
-      });
-      */
-
-      log.info(`Auto accepting registration for ${forwardAddr}`);
-      // Once we have loaded the email from disk, and have confirmed that this
-      // message was a registration email, we can auto accept registration on
-      // behalf of the user.
-      autoaccept(email.html, function accepted(e) {
-        // The callback simply lets us log a message before calling the cb
-        if(e) {
-          log.error(`Failed to auto accept: ${e.message}`);
-        }
         return cb(e);
       });
     });

@@ -9,13 +9,13 @@ module.exports = {
   mailer: {
     host: process.env.MAIL_API_HOST,
     port: process.env.MAIL_API_PORT,
-    secureConnection: (typeof process.env.MAIL_SECURE === 'string')
-      ? process.env.MAIL_SECURE.toLowerCase() === 'false'
-      : true,
+    secureConnection: (typeof process.env.MAIL_SECURE === 'string') ?
+      process.env.MAIL_SECURE.toLowerCase() === 'false' :
+      true,
     tls: {
-        rejectUnauthorized:  (typeof process.env.MAIL_SECURE === 'string')
-      ? process.env.MAIL_SECURE.toLowerCase() === 'true'
-      : true
+      rejectUnauthorized:  (typeof process.env.MAIL_SECURE === 'string') ?
+        process.env.MAIL_SECURE.toLowerCase() === 'true' :
+        true
     },
     auth: {
       user: process.env.MAIL_API_USERNAME,
@@ -30,14 +30,14 @@ module.exports = {
   log: {
     level: process.env.LOG_LEVEL || 'info'
   }
-}
+};
 
 // Configure logging
 require('bole').output({
   level: module.exports.log.level,
   stream: process.stdout
-})
+});
 
 // Lock this config object down so we can't accidentally change it during
 // runtime
-Object.freeze(module.exports)
+Object.freeze(module.exports);

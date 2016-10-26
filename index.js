@@ -1,3 +1,4 @@
+'use strict';
 // Receiver is responsible for registering an SMTP client that receives emails
 // destined for [UUID]@heroku.storj.io
 var Receiver = require('./lib/receiver');
@@ -18,13 +19,13 @@ var fs = require('fs');
 // registration email for a heroku user.
 var autoaccept = require('./lib/autoaccept');
 // We use bole for logging, it is configured in ./config
-var log = require('bole')('account-mapper')
+var log = require('bole')('account-mapper');
 
 // onEmail is the event handler that is triggered when a new email is received
 // by the server.
 function onEmail(address, pathname, cb) {
   // Cache the reference to this for use in nested functions
-  var self = this;
+  var self = this; // jshint ignore:line
   log.info('Received email for %s', address.address);
   // Resolve the UUID for incomming email to a heroku account. This also
   // verifies that the incoming email belongs to a real heroku add-on, and
@@ -39,7 +40,10 @@ function onEmail(address, pathname, cb) {
       return cb(e);
     }
 
-    log.info('Successfully mapped address %s to %s', address.address, forwardAddr);
+    log.info(
+      'Successfully mapped address %s to %s',
+      address.address,
+      forwardAddr);
 
     // Next, we will parse the file we were given by Receiver. The file should
     // be an SMTP message body that Receiver wrote to the file system. To begin
@@ -54,7 +58,7 @@ function onEmail(address, pathname, cb) {
       // the message is corrupt and there isn't really anything we can do
       // (especially since we can't trust the message at this point)
       if(!email.from || !email.subject || !email.text || !email.html) {
-        return cb(new Error('Invalid SMTP message'))
+        return cb(new Error('Invalid SMTP message'));
       }
 
       // If the subject of the email is to confirm the email address, then we
@@ -98,7 +102,9 @@ function onEmail(address, pathname, cb) {
           return cb(e);
         }
 
-        log.info('Email for %s sent with messageId %s', forwardAddr, info.messageId);
+        log.info('Email for %s sent with messageId %s',
+          forwardAddr,
+          info.messageId);
         return cb(e);
       });
     });
@@ -112,7 +118,7 @@ function onEmail(address, pathname, cb) {
 // If Receiver encounters an error, this is the error handling logic it should
 // use instead of throwing.
 function onError (e) {
-  if(e) return log.error(e);
+  if(e) { return log.error(e); }
 }
 
 // Bootstrap is the entrypoint logic for this application. When started via
@@ -122,9 +128,9 @@ function bootstrap (cb) {
   // Attach all of our instantiated objects to a single object for easy
   // tracking. This lets our unit tests interact with the individual
   // components instantiated by this file.
-  var result = {}
+  var result = {};
   // Create a new receiver, and register our onEmail logic above to it.
-  new Receiver(
+  Receiver(
     {
       port: config.receiver.port,
       host: config.receiver.host,
@@ -148,7 +154,7 @@ function bootstrap (cb) {
 // export a function that lets that module control this application.
 /* istanbul ignore else */
 if(module.parent) {
-  module.exports = bootstrap
+  module.exports = bootstrap;
 } else {
   // We were started from the command line, so startup like normal
   bootstrap(function started(e) {

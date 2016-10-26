@@ -8,6 +8,7 @@
     "cheerio": "^0.22.0",
     "dev-null": "^0.1.1",
     "email-addresses": "2.0.2",
+    "jshint": "^2.9.4",
     "mailparser": "^0.6.1",
     "mkdirp": "^0.5.1",
     "request": "^2.74.0",
@@ -22,6 +23,7 @@
     "tape": "^4.6.0"
   },
   "scripts": {
+    "pretest": "jshint --config .jshintrc -c .jshintrc --exclude node_modules *.js config/*.js dockerfiles/*/*.js test/**/*.js lib/**/*.js",
     "test": "nyc --reporter text --reporter html tape test/**/*.js"
   },
   "author": "William Blankenship <william.jblankenship@gmail.com>",

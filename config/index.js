@@ -29,6 +29,11 @@ module.exports = {
   },
   log: {
     level: process.env.LOG_LEVEL || 'info'
+  },
+  retry: {
+    interval: 15,
+    baseDelay: 50,
+    exponent: 2
   }
 };
 

@@ -3,9 +3,9 @@ var test = require('tape');
 var Heroku = require('../../lib/heroku');
 var request = require('request');
 
-test('Heroku handles error codes', function (t) {
+test('Heroku handles retry logic', function (t) {
   var h = Heroku('foo', 'bar', 'url');
-  t.plan(12);
+  t.plan(7);
 
   var invoked = 0;
   request.get = function (opts, cb) {
@@ -21,26 +21,6 @@ test('Heroku handles error codes', function (t) {
       { owner_email: 'foobar' }
     );
   };
-
-  h.getEmail('buzz', function (e) {
-    t.ok(e, 'errored');
-  });
-
-  h.getEmail('buzz', function (e) {
-    t.ok(e, 'errored');
-  });
-
-  h.getEmail('buzz', function (e) {
-    t.ok(e, 'errored');
-  });
-
-  h.getEmail('buzz', function (e) {
-    t.ok(e, 'errored');
-  });
-
-  h.getEmail('buzz', function (e) {
-    t.ok(e, 'errored');
-  });
 
   h.getEmail('buzz', function (e) {
     t.error(e, 'succeeded');

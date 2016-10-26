@@ -94,7 +94,9 @@ test('Receiver handles heroku errors gracefully', function (t) {
   index(function (e) {
     t.error(e, 'Mock worked');
     onEmail({}, '', function (e) {
-      t.ok(e, 'Handled error');
+      // We don't expect an error in return, but we do expect that the process
+      // won't blow up!
+      t.error(e, 'Handled error');
       t.end();
     });
   });
@@ -128,7 +130,7 @@ test('Receiver handles invalid SMTP messages', function (t) {
   index(function (e) {
     t.error(e, 'Mock worked');
     onEmail({}, path.join(__dirname, 'invalid.txt'), function (e) {
-      t.ok(e, 'Handled error');
+      t.error(e, 'Handled error');
       t.end();
     });
   });
@@ -172,7 +174,6 @@ test('Process auto accepts emails', function (t) {
     t.error(e, 'Mock worked');
     onEmail({}, path.join(__dirname, 'valid.txt'), function (e) {
       t.error(e, 'does not error');
-      t.end();
     });
   });
 });
@@ -227,7 +228,6 @@ test('Process forwards non-registration emails', function (t) {
     t.error(e, 'Mock worked');
     onEmail({}, path.join(__dirname, 'other.txt'), function (e) {
       t.error(e, 'does not error');
-      t.end();
     });
   });
 });
@@ -280,9 +280,60 @@ test('Process handles error when forwarding', function (t) {
 
   index(function (e) {
     t.error(e, 'Mock worked');
+    onEmail({}, path.join(__dirname, 'other2.txt'), function (e) {
+      // We don't expect an error here, but we do expect that the process wont
+      // blow up
+      t.error(e, 'returns error');
+    });
+  });
+});
+
+test('Process handles error when reading file from fs', function (t) {
+  t.plan(6);
+  var onEmail = null;
+  var mock_receiver = function (opts, cb) {
+    t.pass('Receiver mock called');
+    t.ok(opts.onEmail, 'Was provided email handler');
+    onEmail = opts.onEmail;
+    setImmediate(cb);
+  };
+  require('../../lib/receiver');
+  require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
+  var mock_sender = function () {
+    return {
+      _transporter: {
+        sendMail: function (opts, cb) {
+          t.ok('Called sendmail!');
+          setImmediate(cb, new Error('foobar'));
+        }
+      }
+    };
+  };
+  require('../../lib/sender');
+  require.cache[require.resolve('../../lib/sender')].exports =
+    mock_sender;
+  var mock_heroku = function() {
+    t.pass('Heroku mock called');
+    return {
+      getEmail: function (addr, cb) {
+        t.pass('Heroku.getEmail mock called');
+        return setImmediate(cb, null, 'will@storj.io');
+      }
+    };
+  };
+  require('../../lib/heroku');
+  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+
+  delete require.cache[require.resolve('../../index.js')];
+  var index = require('../../index.js');
+
+  index(function (e) {
+    t.error(e, 'Mock worked');
+    // We re-read a deleted file
     onEmail({}, path.join(__dirname, 'other.txt'), function (e) {
-      t.ok(e, 'returns error');
-      t.end();
+      // We don't expect an error here, but we do expect that the process wont
+      // blow up
+      t.error(e, 'returns error');
     });
   });
 });
@@ -324,8 +375,7 @@ test('Index handles autoaccept errors ', function (t) {
   index(function (e) {
     t.error(e, 'Mock worked');
     onEmail({}, path.join(__dirname, 'valid.txt'), function (e) {
-      t.ok(e, 'handles error');
-      t.end();
+      t.error(e, 'handles error');
     });
   });
 });

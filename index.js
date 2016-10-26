@@ -21,9 +21,24 @@ var autoaccept = require('./lib/autoaccept');
 // We use bole for logging, it is configured in ./config
 var log = require('bole')('account-mapper');
 
+// If Receiver encounters an error, this is the error handling logic it should
+// use instead of throwing.
+function onError (e) {
+  if(e) { return log.error(e); }
+}
+
 // onEmail is the event handler that is triggered when a new email is received
 // by the server.
 function onEmail(address, pathname, cb) {
+  // Let the SMTP server know we have received this message, and it can move
+  // on with it's life. We have retry logic in some of our functions that can
+  // keep this event in flight for hours, which would result in the SMTP
+  // request timing out if we tried to process everything before returning the
+  // callback. If this handler fails, we will log an error message and persist
+  // the message to disk for later recovery, protecting us against losing
+  // customer's emails.
+  setImmediate(cb);
+
   // Cache the reference to this for use in nested functions
   var self = this; // jshint ignore:line
   log.info('Received email for %s', address.address);
@@ -33,11 +48,15 @@ function onEmail(address, pathname, cb) {
   // does not exist on Heroku's end, we will return an error instead of
   // registering the account.
   self.heroku.getEmail(address.local, function haveEmail (e, forwardAddr) {
-    // If we encounter an error, then we should assume the heroku address does
-    // not exist, and we should return.
+    // If we encounter an error fetching the address, that _probably_ means
+    // the email was sent in error or mischieviously. We will report the error,
+    // and we will write the error out to disk to make sure we can manually
+    // recover from this if something is wrong.
     if(e) {
       log.error(e);
-      return cb(e);
+      return fs.writeFile(
+        `${pathname}.error`,
+        JSON.stringify(address, null, '  '));
     }
 
     log.info(
@@ -58,7 +77,11 @@ function onEmail(address, pathname, cb) {
       // the message is corrupt and there isn't really anything we can do
       // (especially since we can't trust the message at this point)
       if(!email.from || !email.subject || !email.text || !email.html) {
-        return cb(new Error('Invalid SMTP message'));
+        var e = new Error('Invalid SMTP message');
+        log.error(e);
+        // Log the error to disk and persist the message just in case.
+        return fs.writeFile(`${pathname}.error`,
+          JSON.stringify(address, null, '  '));
       }
 
       // If the subject of the email is to confirm the email address, then we
@@ -73,11 +96,9 @@ function onEmail(address, pathname, cb) {
         // message was a registration email, we can auto accept registration on
         // behalf of the user.
         return autoaccept(email.html, function accepted(e) {
-          // The callback simply lets us log a message before calling the cb
           if(e) {
             log.error(`Failed to auto accept: ${e.message}`);
           }
-          return cb(e);
         });
       }
 
@@ -99,26 +120,24 @@ function onEmail(address, pathname, cb) {
       return self.mailer._transporter.sendMail(opts, function sent(e, info) {
         if(e) {
           log.error('Error sending email for %s: %s', forwardAddr, e);
-          return cb(e);
+          return null;
         }
 
         log.info('Email for %s sent with messageId %s',
           forwardAddr,
           info.messageId);
-        return cb(e);
+
+        // We are done with the message, it can be deleted.
+        return fs.unlink(pathname);
       });
     });
     // Now that we have a handler registered, go ahead and start piping the
     // SMTP message into the parser, once it is done loading off of disk it
     // will trigger the above logic.
-    fs.createReadStream(pathname).pipe(parser);
+    var stream = fs.createReadStream(pathname);
+    stream.pipe(parser);
+    stream.on('error', onError);
   });
-}
-
-// If Receiver encounters an error, this is the error handling logic it should
-// use instead of throwing.
-function onError (e) {
-  if(e) { return log.error(e); }
 }
 
 // Bootstrap is the entrypoint logic for this application. When started via

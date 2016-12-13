@@ -41,7 +41,7 @@ function onEmail(address, pathname, cb) {
 
   // Cache the reference to this for use in nested functions
   var self = this; // jshint ignore:line
-  log.info('Received email for %s', address.address);
+  log.info(`${address.address}: Received email for %s`);
   // Resolve the UUID for incomming email to a heroku account. This also
   // verifies that the incoming email belongs to a real heroku add-on, and
   // that this API isn't being abused to register bot accounts. If the UUID
@@ -53,16 +53,14 @@ function onEmail(address, pathname, cb) {
     // and we will write the error out to disk to make sure we can manually
     // recover from this if something is wrong.
     if(e) {
-      log.error(e);
+      log.error(`${address.address}: ${e}`);
       return fs.writeFile(
         `${pathname}.error`,
         JSON.stringify(address, null, '  '));
     }
 
     log.info(
-      'Successfully mapped address %s to %s',
-      address.address,
-      forwardAddr);
+      `${address.address}: Successfully mapped address to ${forwardAddr}`);
 
     // Next, we will parse the file we were given by Receiver. The file should
     // be an SMTP message body that Receiver wrote to the file system. To begin
@@ -78,7 +76,7 @@ function onEmail(address, pathname, cb) {
       // (especially since we can't trust the message at this point)
       if(!email.from || !email.subject || !email.text || !email.html) {
         var e = new Error('Invalid SMTP message');
-        log.error(e);
+        log.error(`${address.address}: ${e}`);
         // Log the error to disk and persist the message just in case.
         return fs.writeFile(`${pathname}.error`,
           JSON.stringify(address, null, '  '));
@@ -91,14 +89,15 @@ function onEmail(address, pathname, cb) {
       // that a heroku user receives an email requiring that they confirm their
       // account.
       if(email.subject.toLowerCase().indexOf('confirm your email address') !== -1) {
-        log.info(`Auto accepting registration for ${forwardAddr}`);
+        log.info(`${address.address}: Auto accepting registration for ${forwardAddr}`);
         // Once we have loaded the email from disk, and have confirmed that this
         // message was a registration email, we can auto accept registration on
         // behalf of the user.
-        return autoaccept(email.html, function accepted(e) {
+        return autoaccept(email.html, function accepted(e, url) {
           if(e) {
-            log.error(`Failed to auto accept: ${e.message}`);
+            retrun log.error(`${address.address}: Failed to auto accept: ${e.message}`);
           }
+          log.info(`${address.address}: Called ${url}`);
         });
       }
 
@@ -113,17 +112,17 @@ function onEmail(address, pathname, cb) {
         html: email.html
       };
 
-      log.info('Forwarding email to address %s', forwardAddr);
+      log.info(`${address.address}: Forwarding email to address ${forwardAddr}`);
 
       // Use the transporter from the bridge's repository to forward the email
       // along to the end user.
       return self.mailer._transporter.sendMail(opts, function sent(e, info) {
         if(e) {
-          log.error('Error sending email for %s: %s', forwardAddr, e);
+          log.error(`${address.address}: Error sending email for %{forwardAddr} ${e}`);
           return null;
         }
 
-        log.info('Email for %s sent with messageId %s',
+        log.info(`${address.address}: Email for %s sent with messageId %s`,
           forwardAddr,
           info.messageId);
 

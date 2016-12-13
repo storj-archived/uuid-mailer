@@ -90,7 +90,7 @@ function onEmail(address, pathname, cb) {
       // email format, but we don't see a way around it. The worst case here is
       // that a heroku user receives an email requiring that they confirm their
       // account.
-      if(email.subject.indexOf('Confirm Your Email Address') !== -1) {
+      if(email.subject.toLowerCase.indexOf('confirm your email address') !== -1) {
         log.info(`Auto accepting registration for ${forwardAddr}`);
         // Once we have loaded the email from disk, and have confirmed that this
         // message was a registration email, we can auto accept registration on

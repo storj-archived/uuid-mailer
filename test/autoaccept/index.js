@@ -17,10 +17,13 @@ test('Autoaccept parses link', function (t) {
   t.plan(2);
   mockRequest.get = function (url, cb) {
     // url gets passed through
-    t.equal('foobar!', url);
+    t.equal('activations/link2', url);
     setImmediate(cb);
   };
-  autoaccept('<html><body><a href="foobar!"></a></body></html>', function (e) {
+  var html =
+    '<html><body><a href="link1"></a><a href="activations/link2"></a>' +
+    '</body></html>';
+  autoaccept(html, function (e) {
       t.error(e, 'error free');
       t.end();
     });

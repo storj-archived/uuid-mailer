@@ -41,7 +41,7 @@ function onEmail(address, pathname, cb) {
 
   // Cache the reference to this for use in nested functions
   var self = this; // jshint ignore:line
-  log.info(`${address.address}: Received email for %s`);
+  log.info(`${address.address}: Received email`);
   // Resolve the UUID for incomming email to a heroku account. This also
   // verifies that the incoming email belongs to a real heroku add-on, and
   // that this API isn't being abused to register bot accounts. If the UUID
@@ -88,14 +88,19 @@ function onEmail(address, pathname, cb) {
       // email format, but we don't see a way around it. The worst case here is
       // that a heroku user receives an email requiring that they confirm their
       // account.
-      if(email.subject.toLowerCase().indexOf('confirm your email address') !== -1) {
-        log.info(`${address.address}: Auto accepting registration for ${forwardAddr}`);
+      var subject = email.subject.toLowerCase();
+      if(subject.indexOf('confirm your email address') !== -1) {
+        log.info(`%s: Auto accepting registration for %s`,
+        address.address,
+        forwardAddr);
         // Once we have loaded the email from disk, and have confirmed that this
         // message was a registration email, we can auto accept registration on
         // behalf of the user.
         return autoaccept(email.html, function accepted(e, url) {
           if(e) {
-            retrun log.error(`${address.address}: Failed to auto accept: ${e.message}`);
+            return log.error(`%s: Failed to auto accept: %s`,
+              address.address,
+              e.message);
           }
           log.info(`${address.address}: Called ${url}`);
         });
@@ -112,13 +117,18 @@ function onEmail(address, pathname, cb) {
         html: email.html
       };
 
-      log.info(`${address.address}: Forwarding email to address ${forwardAddr}`);
+      log.info(`%s: Forwarding email to address %s`,
+        address.address,
+        forwardAddr);
 
       // Use the transporter from the bridge's repository to forward the email
       // along to the end user.
       return self.mailer._transporter.sendMail(opts, function sent(e, info) {
         if(e) {
-          log.error(`${address.address}: Error sending email for %{forwardAddr} ${e}`);
+          log.error(`%s: Error sending email for %s: %s`,
+            address.address,
+            forwardAddr,
+            e.message);
           return null;
         }
 

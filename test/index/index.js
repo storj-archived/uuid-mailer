@@ -4,10 +4,11 @@ var path = require('path');
 
 // Mock config for tests
 var mockConfig = {
-  heroku: {
-    id: 'foobar',
-    password: 'bizzbuzz',
-    url: 'http://127.0.0.1:8543'
+  mongo: {
+    user: 'foobar',
+    pass: 'bizzbuzz',
+    url: 'mongodb://127.0.0.1:27017',
+    ssl: false
   },
   mailer: {
     host: '127.0.0.1',
@@ -25,14 +26,26 @@ var mockConfig = {
 
 require('../../config');
 require.cache[require.resolve('../../config')].exports = mockConfig;
-delete require.cache[require.resolve('../../lib/heroku')];
-delete require.cache[require.resolve('../../lib/autoaccept')];
+delete require.cache[require.resolve('../../lib/mongo')];
 delete require.cache[require.resolve('../../lib/receiver')];
 delete require.cache[require.resolve('../../lib/sender')];
 delete require.cache[require.resolve('../../index.js')];
-var index = require('../../index.js');
+require('../../index.js');
 
 test('Bootstrap starts and stops server', function (t) {
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
+    return {
+      getEmail: function (addr, cb) {
+        t.pass('mongo.getEmail mock called');
+        return setImmediate(cb, new Error('foobar!'));
+      }
+    };
+  };
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
+  delete require.cache[require.resolve('../../index.js')];
+  var index = require('../../index.js');
   index(function (e, server) {
     t.error(e, 'server starts successfully');
     t.ok(server, 'we are returned a server');
@@ -46,6 +59,17 @@ test('Bootstrap starts and stops server', function (t) {
 });
 
 test('Bootstrap gracefully handles errors', function (t) {
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
+    return {
+      getEmail: function (addr, cb) {
+        t.pass('mongo.getEmail mock called');
+        return setImmediate(cb, new Error('foobar!'));
+      }
+    };
+  };
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
   var mock_receiver = function (opts, cb) {
     t.ok(opts.onError, 'We are provided an error function');
     // call it
@@ -66,7 +90,7 @@ test('Bootstrap gracefully handles errors', function (t) {
   });
 });
 
-test('Receiver handles heroku errors gracefully', function (t) {
+test('Receiver handles mongo errors gracefully', function (t) {
   var onEmail = null;
   var mock_receiver = function (opts, cb) {
     t.pass('Receiver mock called');
@@ -76,17 +100,17 @@ test('Receiver handles heroku errors gracefully', function (t) {
   };
   require('../../lib/receiver');
   require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_heroku = function() {
-    t.pass('Heroku mock called');
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
     return {
       getEmail: function (addr, cb) {
-        t.pass('Heroku.getEmail mock called');
+        t.pass('mongo.getEmail mock called');
         return setImmediate(cb, new Error('foobar!'));
       }
     };
   };
-  require('../../lib/heroku');
-  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
 
   delete require.cache[require.resolve('../../index.js')];
   var index = require('../../index.js');
@@ -112,17 +136,17 @@ test('Receiver handles invalid SMTP messages', function (t) {
   };
   require('../../lib/receiver');
   require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_heroku = function() {
-    t.pass('Heroku mock called');
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
     return {
       getEmail: function (addr, cb) {
-        t.pass('Heroku.getEmail mock called');
+        t.pass('mongo.getEmail mock called');
         return setImmediate(cb, null, 'will@storj.io');
       }
     };
   };
-  require('../../lib/heroku');
-  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
 
   delete require.cache[require.resolve('../../index.js')];
   var index = require('../../index.js');
@@ -137,7 +161,7 @@ test('Receiver handles invalid SMTP messages', function (t) {
 });
 
 test('Process auto accepts emails', function (t) {
-  t.plan(8);
+  t.plan(6);
   var onEmail = null;
   var mock_receiver = function (opts, cb) {
     t.pass('Receiver mock called');
@@ -147,25 +171,17 @@ test('Process auto accepts emails', function (t) {
   };
   require('../../lib/receiver');
   require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_accepter = function (html, cb) {
-    t.pass('Accepter was called');
-    t.ok(html, 'was provided message body');
-    setImmediate(cb);
-  };
-  require('../../lib/autoaccept');
-  require.cache[require.resolve('../../lib/autoaccept')].exports =
-    mock_accepter;
-  var mock_heroku = function() {
-    t.pass('Heroku mock called');
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
     return {
       getEmail: function (addr, cb) {
-        t.pass('Heroku.getEmail mock called');
+        t.pass('mongo.getEmail mock called');
         return setImmediate(cb, null, 'will@storj.io');
       }
     };
   };
-  require('../../lib/heroku');
-  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
 
   delete require.cache[require.resolve('../../index.js')];
   var index = require('../../index.js');
@@ -189,13 +205,6 @@ test('Process forwards non-registration emails', function (t) {
   };
   require('../../lib/receiver');
   require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_accepter = function (html, cb) {
-    t.fail('Accepter was called instead of sender');
-    setImmediate(cb);
-  };
-  require('../../lib/autoaccept');
-  require.cache[require.resolve('../../lib/autoaccept')].exports =
-    mock_accepter;
   var mock_sender = function () {
     return {
       _transporter: {
@@ -209,17 +218,17 @@ test('Process forwards non-registration emails', function (t) {
   require('../../lib/sender');
   require.cache[require.resolve('../../lib/sender')].exports =
     mock_sender;
-  var mock_heroku = function() {
-    t.pass('Heroku mock called');
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
     return {
       getEmail: function (addr, cb) {
-        t.pass('Heroku.getEmail mock called');
+        t.pass('mongo.getEmail mock called');
         return setImmediate(cb, null, 'will@storj.io');
       }
     };
   };
-  require('../../lib/heroku');
-  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
 
   delete require.cache[require.resolve('../../index.js')];
   var index = require('../../index.js');
@@ -243,13 +252,6 @@ test('Process handles error when forwarding', function (t) {
   };
   require('../../lib/receiver');
   require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_accepter = function (html, cb) {
-    t.fail('Accepter was called instead of sender');
-    setImmediate(cb);
-  };
-  require('../../lib/autoaccept');
-  require.cache[require.resolve('../../lib/autoaccept')].exports =
-    mock_accepter;
   var mock_sender = function () {
     return {
       _transporter: {
@@ -263,17 +265,17 @@ test('Process handles error when forwarding', function (t) {
   require('../../lib/sender');
   require.cache[require.resolve('../../lib/sender')].exports =
     mock_sender;
-  var mock_heroku = function() {
-    t.pass('Heroku mock called');
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
     return {
       getEmail: function (addr, cb) {
-        t.pass('Heroku.getEmail mock called');
+        t.pass('mongo.getEmail mock called');
         return setImmediate(cb, null, 'will@storj.io');
       }
     };
   };
-  require('../../lib/heroku');
-  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
 
   delete require.cache[require.resolve('../../index.js')];
   var index = require('../../index.js');
@@ -312,17 +314,17 @@ test('Process handles error when reading file from fs', function (t) {
   require('../../lib/sender');
   require.cache[require.resolve('../../lib/sender')].exports =
     mock_sender;
-  var mock_heroku = function() {
-    t.pass('Heroku mock called');
+  var mock_mongo = function() {
+    t.pass('mongo mock called');
     return {
       getEmail: function (addr, cb) {
-        t.pass('Heroku.getEmail mock called');
+        t.pass('mongo.getEmail mock called');
         return setImmediate(cb, null, 'will@storj.io');
       }
     };
   };
-  require('../../lib/heroku');
-  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
+  require('../../lib/mongo');
+  require.cache[require.resolve('../../lib/mongo')].exports = mock_mongo;
 
   delete require.cache[require.resolve('../../index.js')];
   var index = require('../../index.js');
@@ -338,53 +340,11 @@ test('Process handles error when reading file from fs', function (t) {
   });
 });
 
-test('Index handles autoaccept errors ', function (t) {
-  t.plan(8);
-  var onEmail = null;
-  var mock_receiver = function (opts, cb) {
-    t.pass('Receiver mock called');
-    t.ok(opts.onEmail, 'Was provided email handler');
-    onEmail = opts.onEmail;
-    setImmediate(cb);
-  };
-  require('../../lib/receiver');
-  require.cache[require.resolve('../../lib/receiver')].exports = mock_receiver;
-  var mock_accepter = function (html, cb) {
-    t.pass('Accepter was called');
-    t.ok(html, 'was provided message body');
-    setImmediate(cb, new Error('foobar!'));
-  };
-  require('../../lib/autoaccept');
-  require.cache[require.resolve('../../lib/autoaccept')].exports =
-    mock_accepter;
-  var mock_heroku = function() {
-    t.pass('Heroku mock called');
-    return {
-      getEmail: function (addr, cb) {
-        t.pass('Heroku.getEmail mock called');
-        return setImmediate(cb, null, 'will@storj.io');
-      }
-    };
-  };
-  require('../../lib/heroku');
-  require.cache[require.resolve('../../lib/heroku')].exports = mock_heroku;
-
-  delete require.cache[require.resolve('../../index.js')];
-  var index = require('../../index.js');
-
-  index(function (e) {
-    t.error(e, 'Mock worked');
-    onEmail({}, path.join(__dirname, 'valid.txt'), function (e) {
-      t.error(e, 'handles error');
-    });
-  });
-});
-
 test('Cleanup mocks', function (t) {
   delete require.cache[require.resolve('../../lib/receiver')];
   delete require.cache[require.resolve('../../index.js')];
-  delete require.cache[require.resolve('../../lib/heroku')];
-  require('../../lib/heroku');
+  delete require.cache[require.resolve('../../lib/mongo')];
+  //require('../../lib/mongo');
   require('../../lib/receiver');
   require('../../index.js');
   t.end();

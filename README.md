@@ -1,15 +1,5 @@
-# heroku.storj.io email service
+# user.storj.io email service
 
-This service supports the [Storj Heroku Add-on](https://github.com/Storj/heroku-addon/)
+This service enables Storj to allow (approved) 3rd party integrations to send emails to Storj users, without the need of sharing those users email addresses with the 3rd party.
 
-It receives emails destined for `[HEROKU_INSTALLATION_UUID]@heroku.storj.io` and forwards them along to the email address of the heroku user who currently owns the installation.
-
-The initial implementation of this will use [Haraka](https://haraka.github.io/)
-
-# ToDo
-
-### Message retry
-
-Currently, when we receive an email that should be sent but the heroku API responds with an error, instead of storing that email and retrying later we simply discard it and log the error. This will result in (hopefully) very rare cases of registration emails being lost.
-
-Moving forward we should decouple the logic of receiving and storing emails from the logic of resolving the email address to the heroku owner's email address and forwarding.
+This is a simple email forwarding service that resolves `[uuid]@user.storj.io` to the user's real email address on file with storj, and forwards the email along to that final destination. In this way, integrations can send an email to the user `uuid` without needing to know their real email address.

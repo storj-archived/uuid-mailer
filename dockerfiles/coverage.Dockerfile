@@ -1,4 +1,4 @@
-FROM nodesource/node:4
+FROM node:6
 
 RUN npm install -g local-web-server
 WORKDIR /usr/src/app

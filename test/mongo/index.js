@@ -1,4 +1,5 @@
 'use strict';
+/*
 var test = require('tape');
 var Heroku = require('../../lib/heroku');
 var request = require('request');
@@ -34,3 +35,4 @@ test('Cleanup mocks', function (t) {
   require('request');
   t.end();
 });
+*/

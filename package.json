@@ -14,7 +14,8 @@
     "mkdirp": "^0.5.1",
     "request": "^2.74.0",
     "smtp-server": "^1.14.1",
-    "storj-bridge": "^0.11.1"
+    "storj-bridge": "^0.11.1",
+    "storj-service-storage-models": "^8.14.0"
   },
   "devDependencies": {
     "nyc": "^8.3.1",
@@ -23,7 +24,7 @@
     "tape": "^4.6.0"
   },
   "scripts": {
-    "pretest": "jshint --config .jshintrc -c .jshintrc --exclude node_modules *.js config/*.js dockerfiles/*/*.js test/**/*.js lib/**/*.js",
+    "pretest": "jshint --config .jshintrc -c .jshintrc --exclude node_modules *.js config/*.js test/**/*.js lib/**/*.js",
     "test": "nyc --reporter text --reporter html tape test/**/*.js"
   },
   "author": "William Blankenship <william.jblankenship@gmail.com>",

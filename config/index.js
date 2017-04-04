@@ -1,10 +1,13 @@
 // We don't need to test our configuration file
 /* istanbul ignore next */
 module.exports = {
-  heroku: {
-    id: process.env.HEROKU_ID,
-    password: process.env.HEROKU_PASSWORD,
-    url: process.env.HEROKU_URL || 'https://api.heroku.com'
+  mongo: {
+    url: process.env.MONGO_URL,
+    user: process.env.MONGO_USER,
+    pass: process.env.MONGO_PASSWORD,
+    ssl: (typeof process.env.MONGO_SSL !== 'undefined') ?
+      process.env.MONGO_SSL.toLowerCase() === 'true' :
+      true
   },
   mailer: {
     host: process.env.MAIL_API_HOST,

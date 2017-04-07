@@ -9,11 +9,13 @@ node('node') {
 
     stage 'Test'
 
-      sh "source '/var/lib/jenkins/.nvm/nvm.sh'"
-      sh 'node -v'
-      sh 'git clean -fdx'
-      sh 'npm install'
-      sh 'npm test'
+      sh """#!/bin/bash -e
+        source '/var/lib/jenkins/.nvm/nvm.sh'
+        node -v
+        git clean -fdx
+        npm install
+        npm test
+      """
 
     stage 'Build Docker'
 
@@ -30,8 +32,10 @@ node('node') {
     stage 'Cleanup'
 
       echo 'prune and cleanup'
-      sh "source '/var/lib/jenkins/.nvm/nvm.sh'"
-      sh 'rm node_modules -rf'
+      sh """#!/bin/bash -e
+        source '/var/lib/jenkins/.nvm/nvm.sh'
+        rm node_modules -rf
+      """
 
       mail body: 'project build successful',
         from: 'build@storj.io',

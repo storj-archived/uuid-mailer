@@ -7,6 +7,12 @@ module.exports = {
     pass: process.env.MONGO_PASSWORD,
     ssl: (typeof process.env.MONGO_SSL !== 'undefined') ?
       process.env.MONGO_SSL.toLowerCase() === 'true' :
+      true,
+    sslValidate: (typeof process.env.MONGO_SSL_VALIDATE !== 'undefined') ?
+      process.env.MONGO_SSL_VALIDATE.toLowerCase() === 'true' :
+      true,
+    checkServerIdentity: (typeof process.env.MONGO_CSID !== 'undefined') ?
+      process.env.MONGO_CSID.toLowerCase() === 'true' :
       true
   },
   mailer: {

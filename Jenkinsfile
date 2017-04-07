@@ -24,7 +24,7 @@ node('node') {
       sh "./dockerfiles/build.sh storjlabs/uuid-mailer:${env.BUILD_ID} storjlabs/uuid-mailer:${commit_id} storjlabs/uuid-mailer:latest"
       sh "./dockerfiles/push.sh storjlabs/uuid-mailer:${env.BUILD_ID} storjlabs/uuid-mailer:${commit_id} storjlabs/uuid-mailer:latest"
 
-    stage 'Deploy to Staging'
+    stage 'Deploy'
 
       echo 'Push to Repo'
       sh './dockerfiles/deploy.staging.sh uuid-mailer storjlabs/uuid-mailer:${env.BUILD_ID}'

@@ -143,7 +143,9 @@ function bootstrap (cb) {
     config.mongo.url,
     config.mongo.user,
     config.mongo.pass,
-    config.mongo.ssl);
+    config.mongo.ssl,
+    config.mongo.sslValidate,
+    config.mongo.checkServerIdentity);
   result.mailer = new Mailer(config.mailer);
 }
 

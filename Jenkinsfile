@@ -20,7 +20,7 @@ node('node') {
     stage 'Build Docker'
 
       sh "git rev-parse --short HEAD > .git/commit-id"
-      commit_id = readFile('.git/commit-id').trim()
+      def commit_id = readFile('.git/commit-id').trim()
       sh "./dockerfiles/build.sh storjlabs/uuid-mailer:${env.BUILD_ID} storjlabs/uuid-mailer:${commit_id} storjlabs/uuid-mailer:latest"
       sh "./dockerfiles/push.sh storjlabs/uuid-mailer:${env.BUILD_ID} storjlabs/uuid-mailer:${commit_id} storjlabs/uuid-mailer:latest"
 

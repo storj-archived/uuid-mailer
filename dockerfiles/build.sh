@@ -4,7 +4,7 @@ for TAG in "$@"; do
   TAG_PARAMS+=" -t $TAG"
 done
 
-docker build ${TAG_PARAMS} ./dockerfiles/server.Dockerfile
+docker build ${TAG_PARAMS} -f ./dockerfiles/server.Dockerfile .
 result=$?
 
 if [[ $result != 0 ]]; then

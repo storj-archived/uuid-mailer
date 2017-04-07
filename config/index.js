@@ -11,8 +11,8 @@ module.exports = {
     sslValidate: (typeof process.env.MONGO_SSL_VALIDATE !== 'undefined') ?
       process.env.MONGO_SSL_VALIDATE.toLowerCase() === 'true' :
       true,
-    checkServerIdentity: (typeof process.env.MONGO_CHECK_SERVER_IDENTITY !== 'undefined') ?
-      process.env.MONGO_CHECK_SERVER_IDENTITY.toLowerCase() === 'true' :
+    checkServerIdentity: (typeof process.env.MONGO_CSID !== 'undefined') ?
+      process.env.MONGO_CSID.toLowerCase() === 'true' :
       true
   },
   mailer: {

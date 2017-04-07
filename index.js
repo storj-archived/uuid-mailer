@@ -139,13 +139,18 @@ function bootstrap (cb) {
       result.receiver = smtp;
       return cb(e, result);
   });
+
+  var mongoSSLOptions = {
+    ssl: config.mongo.ssl,
+    sslValidate: config.mongo.sslValidate,
+    checkServerIdentity: config.mongo.checkServerIdentity
+  };
+
   result.mongo = new Mongo(
     config.mongo.url,
     config.mongo.user,
     config.mongo.pass,
-    config.mongo.ssl,
-    config.mongo.sslValidate,
-    config.mongo.checkServerIdentity);
+    mongoSSLOptions);
   result.mailer = new Mailer(config.mailer);
 }
 

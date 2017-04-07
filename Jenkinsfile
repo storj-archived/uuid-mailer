@@ -27,7 +27,7 @@ node('node') {
     stage 'Deploy'
 
       echo 'Push to Repo'
-      sh './dockerfiles/deploy.staging.sh uuid-mailer storjlabs/uuid-mailer:${env.BUILD_ID}'
+      sh "./dockerfiles/deploy.staging.sh uuid-mailer storjlabs/uuid-mailer:${env.BUILD_ID}"
 
     stage 'Cleanup'
 

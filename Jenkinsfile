@@ -9,7 +9,7 @@ node('node') {
 
     stage 'Test'
 
-      sh "[[ -s '/var/lib/jenkins/.nvm/nvm.sh' ]] && source '/var/lib/jenkins/.nvm/nvm.sh'"
+      sh "source '/var/lib/jenkins/.nvm/nvm.sh'"
       sh 'node -v'
       sh 'git clean -fdx'
       sh 'npm install'
@@ -30,7 +30,7 @@ node('node') {
     stage 'Cleanup'
 
       echo 'prune and cleanup'
-      sh "[[ -s '/var/lib/jenkins/.nvm/nvm.sh' ]] && source '/var/lib/jenkins/.nvm/nvm.sh'"
+      sh "source '/var/lib/jenkins/.nvm/nvm.sh'"
       sh 'rm node_modules -rf'
 
       mail body: 'project build successful',

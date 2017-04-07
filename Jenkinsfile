@@ -9,9 +9,6 @@ node('node') {
 
     stage 'Test'
 
-      #env.NODE_ENV = "test"
-
-      #print "Environment will be : ${env.NODE_ENV}"
       sh "[[ -s '/var/lib/jenkins/.nvm/nvm.sh' ]] && source '/var/lib/jenkins/.nvm/nvm.sh'"
       sh 'node -v'
       sh 'git clean -fdx'

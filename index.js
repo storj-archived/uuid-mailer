@@ -63,17 +63,6 @@ function onEmail(address, pathname, cb) {
     // memory, moving forward we may be able to optimize this out using streams
     // if this application ends up receiving quite a bit of traffic.
     parser.on('end', function parsedSMTP (email) {
-      // Ensure the parsed message had all of the bits we expected, if not then
-      // the message is corrupt and there isn't really anything we can do
-      // (especially since we can't trust the message at this point)
-      if(!email.from || !email.subject || !email.text || !email.html) {
-        var e = new Error('Invalid SMTP message');
-        log.error(`${address.address}: ${e}`);
-        // Log the error to disk and persist the message just in case.
-        return fs.writeFile(`${pathname}.error`,
-          JSON.stringify(address, null, '  '));
-      }
-
       // Go ahead and forward this email onto the user. We start by coercing
       // the incomming email message into a format mailer understands.
       var opts = {

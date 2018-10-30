@@ -1,3 +1,5 @@
+**Notice: Development on this repository is currently on pause during our v3 rearchitecture. Please see [storj/storj](https://github.com/storj/storj) for ongoing v3 development.**
+
 # user.storj.io email service
 
 This service enables Storj to allow (approved) 3rd party integrations to send emails to Storj users, without the need of sharing those users email addresses with the 3rd party.
